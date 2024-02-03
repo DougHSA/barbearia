@@ -144,11 +144,11 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
 
                                 </SheetTrigger>
                                 <SheetContent className="p-0">
-                                    <SheetHeader className="text-left px5 py-6 border-b border-solid border-secondary">
+                                    <SheetHeader className="text-left px-5 py-4 border-b border-solid border-secondary">
                                         <SheetTitle>Fazer Reserva</SheetTitle>
                                     </SheetHeader>
-                                        <div className="py-6">
-                                            <Calendar mode="single" selected={date} onSelect={handleDateClick} className="mt-6" fromDate={addDays(new Date(),1)} locale={ptBR} styles={{
+                                        <div className="pt-3 pb-6 w-full">
+                                            <Calendar mode="single" selected={date} onSelect={handleDateClick} className="" fromDate={addDays(new Date(),1)} locale={ptBR} styles={{
                                                 head_cell:{
                                                     width:"100%",
                                                     textTransform:"capitalize",
@@ -169,7 +169,11 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
                                                 },
                                                 caption:{
                                                     textTransform:"capitalize",
+                                                },
+                                                month:{
+                                                    width:"100%",
                                                 }
+
                                             }}/>
 
                                         </div>
