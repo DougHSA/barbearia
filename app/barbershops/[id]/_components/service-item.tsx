@@ -101,17 +101,12 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
         if(!date){
             return [];
         }
-        console.log(date);
         return generateDayTimeList(date).filter(time => {
-            
             const timeHour = Number(time.split(':')[0]);
             const timeMin = Number(time.split(':')[1]);
             const dateCompare = date;
             dateCompare.setHours(timeHour,timeMin,0,0);
             const booking = dayBookings.find(booking => {
-                const bookingHour = booking.date.getHours();
-                const bookingMin = booking.date.getMinutes();
-                //const startTime = bookingHour === timeHour && bookingMin === timeMin;
                 const startTime = booking.date;
                 const endTime = addMinutes(booking.date, booking.service.timeSpend);
                 const isBetweenTimes = dateCompare >=  startTime && dateCompare <= endTime; 
@@ -182,7 +177,6 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
                                                 }
 
                                             }}/>
-
                                         </div>
 
                                     {date &&(
