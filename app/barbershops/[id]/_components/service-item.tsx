@@ -103,9 +103,9 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
         }
         return generateDayTimeList(date).filter(time => {
             const timeHour = Number(time.split(':')[0]);
-            const timeMin = Number(time.split(':')[1]);
+            const timeMinute = Number(time.split(':')[1]);
             const dateCompare = date;
-            dateCompare.setHours(timeHour,timeMin,0,0);
+            dateCompare.setHours(timeHour,timeMinute,0,0);
             const booking = dayBookings.find(booking => {
                 const startTime = booking.date;
                 const endTime = addMinutes(booking.date, booking.service.timeSpend);
