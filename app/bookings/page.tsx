@@ -61,7 +61,7 @@ const BookingsPage = async () => {
 				)}
 
 				<div className="flex flex-col gap-3">
-					{confirmedBookings.map((booking: Booking) => (
+					{confirmedBookings.map((booking) => (
 						<BookingItem key={booking.id} booking={booking} />
 					))}
 				</div>
@@ -73,7 +73,7 @@ const BookingsPage = async () => {
 				)}
 
 				<div className="flex flex-col gap-3">
-					{finishedBookings.map((booking: Booking) => (
+					{finishedBookings.map((booking) => (
 						<BookingItem key={booking.id} booking={booking} />
 					))}
 				</div>
