@@ -30,6 +30,7 @@ const BookingsPage = async () => {
 			},
 		}),
 		db.booking.findMany({
+			take: 5,
 			where: {
 				userId: (session?.user as any).id,
 				date: {
