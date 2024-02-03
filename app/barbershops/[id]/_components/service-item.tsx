@@ -97,11 +97,11 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
         }
     }
 
-    const timeList = useMemo( async()=>{
+    const timeList = useMemo(()=>{
         if(!date){
             return [];
         }
-        return await generateDayTimeList(date).filter(time => {
+        return generateDayTimeList(date).filter(time => {
             const timeHour = Number(time.split(':')[0]);
             const timeMinute = Number(time.split(':')[1]);
             const dateCompare = date;
