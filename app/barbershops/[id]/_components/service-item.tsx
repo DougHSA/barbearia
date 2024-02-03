@@ -10,7 +10,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { generateDayTimeList } from "../_helpers/hours";
 import { ptBR } from "date-fns/locale";
-import { addDays, format, setHours, setMinutes } from "date-fns";
+import { addDays, addMinutes, format, setHours, setMinutes } from "date-fns";
 import { saveBooking } from "../_actions/save-booking";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -95,21 +95,27 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
         if(!isAuthenticated){
             return signIn("google");
         }
-        //TODO abrir modal de agendamento
     }
 
     const timeList = useMemo(()=>{
         if(!date){
             return [];
         }
-
+        console.log(date);
         return generateDayTimeList(date).filter(time => {
+            
             const timeHour = Number(time.split(':')[0]);
             const timeMin = Number(time.split(':')[1]);
+            const dateCompare = date;
+            dateCompare.setHours(timeHour,timeMin,0,0);
             const booking = dayBookings.find(booking => {
                 const bookingHour = booking.date.getHours();
                 const bookingMin = booking.date.getMinutes();
-                return bookingHour === timeHour && bookingMin === timeMin;
+                //const startTime = bookingHour === timeHour && bookingMin === timeMin;
+                const startTime = booking.date;
+                const endTime = addMinutes(booking.date, booking.service.timeSpend);
+                const isBetweenTimes = dateCompare >=  startTime && dateCompare <= endTime; 
+                return isBetweenTimes;
             });
             if(!booking){
                 return true;
@@ -129,7 +135,8 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
                     </div>
                     <div className="flex flex-col w-full">
                         <h2 className="font-bold">{service.name}</h2>
-                        <p className="text-sm text-gray-400">{service.desciption}</p>
+                        <p className="text-sm text-gray-400">{service.description}</p>
+                        <p className="text-sm text-gray-400">{`${service.timeSpend} minutos`}</p>
 
                         <div className="flex items-center justify-between mt-3">
                             <p className="text-primary text-sm font-bold">
@@ -222,6 +229,11 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
                                                         <h4 className="text-sm capitalize">{hour}</h4>
                                                     </div>
                                                 )}
+
+                                                <div className="flex justify-between">
+                                                    <h3 className="text-gray-400 text-sm">Tempo</h3>
+                                                    <h4 className="text-sm capitalize">{`${service.timeSpend} minutos`}</h4>
+                                                </div>
 
                                                 <div className="flex justify-between">
                                                     <h3 className="text-gray-400 text-sm">Barbearia</h3>

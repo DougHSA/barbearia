@@ -11,6 +11,9 @@ export const getDayBookings = async (date: Date, barbershopId: string) =>{
                 gte: startOfDay(date),
             },
             barbershopId
+        },
+        include:{
+            service:true,
         }
     });
     return bookings;
