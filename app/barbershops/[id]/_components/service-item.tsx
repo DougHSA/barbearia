@@ -4,7 +4,7 @@ import { Button } from "@/app/_components/ui/button";
 import { Calendar } from "@/app/_components/ui/calendar";
 import { Card, CardContent } from "@/app/_components/ui/card";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/app/_components/ui/sheet";
-import { Barbershop, Booking, Service } from "@prisma/client";
+import { Barber, Barbershop, Booking, Service } from "@prisma/client";
 import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
@@ -16,29 +16,33 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getDayBookings } from "../_actions/get-day-bookings";
+import BarberItem from "./barber-item";
 
 interface ServiceItemProps {
     barbershop: Barbershop;
     service: Service;
+	barbers: Barber[];
     isAuthenticated?: boolean;
 }
 
-const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) => {
+const ServiceItem = ({service, barbershop, barbers, isAuthenticated}:ServiceItemProps) => {
     const router = useRouter();
     const {data} = useSession();
     const [date,setDate] = useState<Date | undefined>(undefined);
+    const [barber,setBarber] = useState<Barber | undefined>(undefined);
     const [hour,setHour] = useState<String | undefined>();
     const [submitIsLoading, setSubmitIsLoading] = useState(false);
     const [sheetIsOpen, setSheetIsOpen] = useState(false);
     const [dayBookings, setDayBookings] = useState<any[]>([]);
-
 
     useEffect(()=>{
         if(!date){
             return;
         }
         const refreshAvailableHours = async () =>{
-            const _dayBookings = await getDayBookings(date, barbershop.id);
+			if(!barber)
+				return;
+            const _dayBookings = await getDayBookings(date, barber.id, barbershop.id);
             setDayBookings(_dayBookings);
         };
         refreshAvailableHours();
@@ -47,7 +51,7 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
     const handleDateClick = (date:Date | undefined) =>{
         setDate(date);
         setHour(undefined);
-
+		setBarber(undefined);
     }
 
     const handleHourClick = (time: string) => {
@@ -57,8 +61,8 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
     const handleBookingSubmit = async () => {
         setSubmitIsLoading(true);
         try{
-            if (!hour || !date || !data?.user){
-                throw new Error("Selecione data e hora para agendar.");
+            if (!hour || !date || !barber || !data?.user){
+                throw new Error("Selecione o(a) profissional, data e hora para agendar.");
             }
 
             const dateHour = Number(hour.split(':')[0]);
@@ -69,7 +73,8 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
                 serviceId: service.id,
                 barbershopId:  barbershop.id,
                 date: newDate,
-                userId: (data.user as any).id
+                userId: (data.user as any).id,
+				barberId: barber.id, 
             });
             setSheetIsOpen(false);
             setHour(undefined);
@@ -96,6 +101,11 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
             return signIn("google");
         }
     }
+
+	const handleBarberClick = (barber: Barber) => {
+		setHour(undefined);
+		setBarber(barber);
+	}
 
     const timeList = useMemo(()=>{
         if(!date){
@@ -195,6 +205,17 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
 
 										{date && (
 											<div className="flex gap-3 overflow-x-auto py-6 px-5 border-t border-solid border-secondary [&::-webkit-scrollbar]:hidden">
+
+												{barbers.length > 0 ? barbers.map((b) => (
+													<BarberItem onClick={() => handleBarberClick(b)} key={b.id} barber={b} className={barber === b ? "border border-primary bg-primary text-primary-foreground hover:bg-primary/90" : "border border-input bg-background hover:bg-accent hover:text-accent-foreground"} />
+												)) : 
+													<h2 className="font-bold">Não há profissionais disponíveis</h2>												
+												}
+											</div>
+										)}
+
+										{barber && (
+											<div className="flex gap-3 overflow-x-auto py-6 px-5 border-t border-solid border-secondary [&::-webkit-scrollbar]:hidden">
 												{timeList.map((time) => (
 													<Button
 														onClick={() => handleHourClick(time)}
@@ -208,20 +229,19 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
 											</div>
 										)}
 
-                                            <div className="py-6 px-5 border-t border-solid border-secondary">
-                                        <Card>
-                                            <CardContent className="p-3 gap-3 flex flex-col">
-                                                <div className="flex justify-between">
-                                                    <h2 className="font-bold">{service.name}</h2>
-                                                    <h3 className="font-bold text-sm">
-                                                        {" "}
-                                                        {Intl.NumberFormat(
-                                                        'pt-BR', 
-                                                        {style: 'currency', currency: 'BRL'}
-                                                        ).format(Number(service.price))}
-                                                    </h3>
-                                        </div>
-
+										<div className="py-6 px-5 border-t border-solid border-secondary">
+											<Card>
+												<CardContent className="p-3 gap-3 flex flex-col">
+													<div className="flex justify-between">
+														<h2 className="font-bold">{service.name}</h2>
+														<h3 className="font-bold text-sm">
+															{" "}
+															{Intl.NumberFormat("pt-BR", {
+																style: "currency",
+																currency: "BRL",
+															}).format(Number(service.price))}
+														</h3>
+													</div>
 
 													{date && (
 														<div className="flex justify-between">
@@ -246,8 +266,21 @@ const ServiceItem = ({service, barbershop, isAuthenticated}:ServiceItemProps) =>
 														<h4 className="text-sm capitalize">{`${service.timeSpend} minutos`}</h4>
 													</div>
 
+													{barber && (
+														<div className="flex justify-between">
+															<h3 className="text-gray-400 text-sm">
+																Profissional
+															</h3>
+															<h4 className="text-sm capitalize">
+																{barber?.name}
+															</h4>
+														</div>
+													)}
+
 													<div className="flex justify-between">
-														<h3 className="text-gray-400 text-sm">Barbearia</h3>
+														<h3 className="text-gray-400 text-sm">
+															Estabelecimento
+														</h3>
 														<h4 className="text-sm capitalize">
 															{barbershop.name}
 														</h4>

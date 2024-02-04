@@ -55,6 +55,13 @@ async function seedDatabase() {
       "Avenida Clássica, 707",
     ];
 
+    const barbers =[
+      {
+        name: "Douglas Andrade",
+        role: "Barbeiro",
+        barbershopId: "3f6d2762-87db-472d-a805-a397a1468d09"
+      }
+    ]
     const services = [
       {
         name: "Corte de Cabelo",
@@ -133,6 +140,20 @@ async function seedDatabase() {
               },
             },
             imageUrl: service.imageUrl,
+          },
+        });
+      }
+
+      for (const barber of barbers) {
+        await prisma.barber.create({
+          data: {
+            name: barber.name,
+            role: barber.role,
+            barbershop: {
+              connect: {
+                id: barbershop.id,
+              },
+            },
           },
         });
       }

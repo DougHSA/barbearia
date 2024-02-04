@@ -8,12 +8,14 @@ interface SaveBookingParams{
     serviceId: string;
     userId: string;
     date: Date;
+    barberId: string;
 }
 
 
 export const saveBooking = async (params: SaveBookingParams) => {
     await db.booking.create({
         data:{
+            barberId: params.barberId,
             barbershopId: params.barbershopId,
             serviceId: params.serviceId,
             userId: params.userId,

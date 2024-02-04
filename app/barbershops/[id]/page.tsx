@@ -4,6 +4,7 @@ import ServiceItem from "./_components/service-item";
 import { getServerSession } from "next-auth";
 import { Service } from "@prisma/client";
 import { authOptions } from "@/app/_lib/auth";
+import { redirect } from "next/navigation";
 
 interface BarbershopDetailsPageProps {
   params: {
@@ -12,25 +13,40 @@ interface BarbershopDetailsPageProps {
 }
 
 const BarbershopDetailsPage = async ({ params }: BarbershopDetailsPageProps) => {
-  const session = await getServerSession(authOptions);
-
   if (!params.id) {
-    // TODO: redirecionar para home page
-    return null;
+    return redirect("/");
   }
+  const [session, barbershop] = await Promise.all([
+    getServerSession(authOptions),
 
-  const barbershop = await db.barbershop.findUnique({
+  //     db.barber.findMany({ 
+  //   where: { 
+  //     barbershopId: params?.id 
+  //   },
+  //   include:{
+  //     barberServices: true,
+  //   }
+  // }),
+  db.barbershop.findUnique({
     where: {
       id: params.id,
     },
     include: {
-      services: true,
+      services: {
+        include:{
+          barberServices: {
+            include:{
+              barber: true,
+            }
+          }
+        }
+      },
     },
-  });
+  }),
+]);
 
   if (!barbershop) {
-    // TODO: redirecionar para home page
-    return null;
+    return redirect("/");
   }
 
   return (
@@ -38,8 +54,8 @@ const BarbershopDetailsPage = async ({ params }: BarbershopDetailsPageProps) => 
       <BarbershopInfo barbershop={barbershop} />
 
       <div className="px-5 flex flex-col gap-4 py-6">
-        {barbershop.services.map((service:Service) => (
-          <ServiceItem key={service.id} barbershop={barbershop} service={service} isAuthenticated={!!session?.user} />
+        {barbershop.services.map((service) => (
+          <ServiceItem key={service.id} barbershop={barbershop} service={service} isAuthenticated={!!session?.user} barbers={service.barberServices.map(b=>b.barber)} />
         ))}
       </div>
     </div>
